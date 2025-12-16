@@ -1,6 +1,6 @@
 // CREDENCIALES
-const SUPABASE_URL = 'https://oyxpjgjwhyzgywohwldd.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95eHBqZ2p3aHl6Z3l3b2h3bGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODE5ODMsImV4cCI6MjA4MTI1Nzk4M30.pa7FgzW6oSfdOS3CCQ32aAM02Xyedme6Rv_1onFj15Q';
+const SUPABASE_URL = 'https://dusuulvonleasrpbjhed.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1c3V1bHZvbmxlYXNycGJqaGVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMTc4NzUsImV4cCI6MjA4MDg5Mzg3NX0.bSV9-9gqXZCtWrxGjYo_7QWxjJxtn_h312yjuEPIgn8';
 //1
 const { createClient } = supabase;
 const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -10,22 +10,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
 
-    // Caso 1: template con ?access_token=...&type=recovery (sin refresh_token)
     const queryAccessToken = searchParams.get('access_token');
     const queryType = searchParams.get('type');
-
-    // Caso 2: flujo normal de Supabase con #access_token=...&refresh_token=...&type=recovery
     const hashAccessToken = hashParams.get('access_token');
     const hashRefreshToken = hashParams.get('refresh_token');
     const hashType = hashParams.get('type');
 
     try {
         if (queryAccessToken && queryType === 'recovery') {
-            // No hay refresh_token, usar verifyOtp con token_hash
-            const { error } = await _supabase.auth.verifyOtp({
+            // Intentar ambas formas: primero token_hash, luego token
+            let error;
+            
+            ({ error } = await _supabase.auth.verifyOtp({
                 token_hash: queryAccessToken,
                 type: 'recovery',
-            });
+            }));
+            
+            if (error) {
+                // Si falla token_hash, intentar como token plano
+                ({ error } = await _supabase.auth.verifyOtp({
+                    token: queryAccessToken,
+                    type: 'recovery',
+                }));
+            }
+            
             if (error) throw error;
             console.log('Sesión de recuperación establecida via verifyOtp (query)');
             return;
@@ -41,7 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Último intento: obtener sesión ya guardada (por si el navegador la retuvo)
         const { data: { session }, error } = await _supabase.auth.getSession();
         if (error) throw error;
         if (!session) throw new Error('Auth session missing!');
