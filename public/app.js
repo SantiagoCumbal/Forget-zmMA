@@ -28,8 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Query params:', { queryAccessToken: !!queryAccessToken, queryToken: !!queryToken, queryEmail: !!queryEmail, queryRefreshToken: !!queryRefreshToken, queryType });
         console.log('Hash params:', { hashAccessToken: !!hashAccessToken, hashRefreshToken: !!hashRefreshToken, hashType });
 
-        // Esperar un momento para que Supabase procese
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // No esperar; procesar inmediato para evitar expiración
 
         // Caso 1: hash típico de Supabase: #access_token & refresh_token
         if (hashAccessToken && hashRefreshToken && hashType === 'recovery') {
@@ -49,7 +48,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 token: queryToken,
                 type: 'recovery',
             });
-            if (error) throw error;
+            if (error) {
+                // Mensaje amigable si expiró
+                if (error.message?.toLowerCase().includes('expired')) {
+                    throw new Error('El enlace expiró, solicita un nuevo correo de recuperación.');
+                }
+                throw error;
+            }
             console.log('Sesión de recuperación establecida (query token+email)');
             return;
         }
