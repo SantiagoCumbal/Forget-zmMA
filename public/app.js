@@ -1,6 +1,6 @@
 // CREDENCIALES
-const SUPABASE_URL = 'https://dusuulvonleasrpbjhed.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1c3V1bHZvbmxlYXNycGJqaGVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMTc4NzUsImV4cCI6MjA4MDg5Mzg3NX0.bSV9-9gqXZCtWrxGjYo_7QWxjJxtn_h312yjuEPIgn8';
+const SUPABASE_URL = 'https://oyxpjgjwhyzgywohwldd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95eHBqZ2p3aHl6Z3l3b2h3bGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODE5ODMsImV4cCI6MjA4MTI1Nzk4M30.pa7FgzW6oSfdOS3CCQ32aAM02Xyedme6Rv_1onFj15Q';
 //1
 const { createClient } = supabase;
 const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
