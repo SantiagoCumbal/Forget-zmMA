@@ -8,19 +8,40 @@ const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // 1. DETECTAR SESIÓN AL CARGAR
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Esperar un momento para que Supabase procese los parámetros del URL
+        // Debug: mostrar la URL completa
+        console.log('URL completa:', window.location.href);
+        console.log('Search:', window.location.search);
+        console.log('Hash:', window.location.hash);
+
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+
+        const queryAccessToken = searchParams.get('access_token');
+        const queryRefreshToken = searchParams.get('refresh_token');
+        const queryType = searchParams.get('type');
+        const hashAccessToken = hashParams.get('access_token');
+        const hashRefreshToken = hashParams.get('refresh_token');
+        const hashType = hashParams.get('type');
+
+        console.log('Query params:', { queryAccessToken: !!queryAccessToken, queryRefreshToken: !!queryRefreshToken, queryType });
+        console.log('Hash params:', { hashAccessToken: !!hashAccessToken, hashRefreshToken: !!hashRefreshToken, hashType });
+
+        // Esperar un momento para que Supabase procese
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Intentar obtener la sesión que Supabase detectó automáticamente
+        // Intentar obtener la sesión
         const { data: { session }, error } = await _supabase.auth.getSession();
         
+        console.log('Session result:', { session: !!session, error });
+
         if (error) throw error;
         if (!session) throw new Error('Auth session missing!');
         
-        console.log('Sesión de recuperación establecida automáticamente');
+        console.log('Sesión de recuperación establecida');
     } catch (error) {
         document.getElementById('error').textContent = error.message;
         document.getElementById('error').style.display = 'block';
+        console.error('Error:', error);
     }
 });
 
