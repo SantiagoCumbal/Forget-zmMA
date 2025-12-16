@@ -7,14 +7,48 @@ const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 1. DETECTAR SESIÓN AL CARGAR
 document.addEventListener('DOMContentLoaded', async () => {
-    // La librería busca automáticamente el #access_token en la barra de direcciones
-    const { data: { session }, error } = await _supabase.auth.getSession();
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
 
-    if (error) {
+    // Caso 1: template con ?access_token=...&type=recovery (sin refresh_token)
+    const queryAccessToken = searchParams.get('access_token');
+    const queryType = searchParams.get('type');
+
+    // Caso 2: flujo normal de Supabase con #access_token=...&refresh_token=...&type=recovery
+    const hashAccessToken = hashParams.get('access_token');
+    const hashRefreshToken = hashParams.get('refresh_token');
+    const hashType = hashParams.get('type');
+
+    try {
+        if (queryAccessToken && queryType === 'recovery') {
+            // No hay refresh_token, usar verifyOtp con token_hash
+            const { error } = await _supabase.auth.verifyOtp({
+                token_hash: queryAccessToken,
+                type: 'recovery',
+            });
+            if (error) throw error;
+            console.log('Sesión de recuperación establecida via verifyOtp (query)');
+            return;
+        }
+
+        if (hashAccessToken && hashRefreshToken && hashType === 'recovery') {
+            const { error } = await _supabase.auth.setSession({
+                access_token: hashAccessToken,
+                refresh_token: hashRefreshToken,
+            });
+            if (error) throw error;
+            console.log('Sesión de recuperación establecida via setSession (hash)');
+            return;
+        }
+
+        // Último intento: obtener sesión ya guardada (por si el navegador la retuvo)
+        const { data: { session }, error } = await _supabase.auth.getSession();
+        if (error) throw error;
+        if (!session) throw new Error('Auth session missing!');
+        console.log('Sesión recuperada de la caché del navegador');
+    } catch (error) {
         document.getElementById('error').textContent = error.message;
         document.getElementById('error').style.display = 'block';
-    } else if (session) {
-        console.log("¡Sesión recuperada del hash!");
     }
 });
 
